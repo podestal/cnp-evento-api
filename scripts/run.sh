@@ -6,12 +6,8 @@ set -e
 # Wait for the database to be ready before continuing.
 python manage.py wait_for_db
 
-# Ensure staticfiles directory exists and has correct permissions
-mkdir -p /app/evento/staticfiles
-chmod -R 755 /app/evento/staticfiles || true
-
-# Collect static files (CSS, JS, etc.) without prompting for input.
-python manage.py collectstatic --noinput
+# Collect static files (skip if it fails - not critical)
+python manage.py collectstatic --noinput --clear || echo "Warning: collectstatic failed, continuing anyway..."
 
 # Apply any pending database migrations.
 # python manage.py migrate
