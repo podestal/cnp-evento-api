@@ -6,6 +6,10 @@ set -e
 # Wait for the database to be ready before continuing.
 python manage.py wait_for_db
 
+# Ensure staticfiles directory exists and has correct permissions
+mkdir -p /app/evento/staticfiles
+chmod -R 755 /app/evento/staticfiles || true
+
 # Collect static files (CSS, JS, etc.) without prompting for input.
 python manage.py collectstatic --noinput
 

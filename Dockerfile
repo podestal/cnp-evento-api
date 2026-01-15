@@ -2,9 +2,6 @@ FROM python:3.12-bookworm
 
 ENV PYTHONUNBUFFERED=1
 
-# Ensure /tmp directory exists and is writable
-RUN mkdir -p /tmp && chmod 1777 /tmp
-
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./scripts /scripts
 COPY ./app /app
@@ -36,6 +33,7 @@ RUN python -m venv /py && \
     chmod -R 755 /vol/web/static && \
     chmod -R 777 /vol/web/media && \
     chmod -R +x /scripts && \
+    chown -R django-user:django-user /app && \
     rm -rf /tmp  # Move tmp cleanup to the end
 
 ENV PATH="/scripts:/py/bin:$PATH"
