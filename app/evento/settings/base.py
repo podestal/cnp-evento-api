@@ -131,10 +131,8 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
-# CORS Configuration
-CORS_ALLOWED_ORIGINS = []
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False  # Set to True only in development if needed
+# CORS Configuration - will be overridden in development.py
+# CORS settings are configured per environment
 
 # CLOUDFLARE SETUP
 
