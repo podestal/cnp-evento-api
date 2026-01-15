@@ -37,6 +37,7 @@ class Participant(models.Model):
     location = models.CharField(max_length=255, blank=True, null=True)
     modality = models.CharField(max_length=1, choices=participant_modalities_options)
     activities = models.ManyToManyField(Activity, blank=True)
+    receipt = models.ImageField(upload_to='receipts/', blank=True, null=True, help_text='Receipt image stored in R2 bucket')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
