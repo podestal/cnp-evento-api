@@ -46,7 +46,7 @@ services:
       - ./nginx:/etc/nginx/conf.d
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/certbot:/var/www/certbot
-    image: nginx:latest
+    image: nginx:alpine
     links:
       - app
     environment:
