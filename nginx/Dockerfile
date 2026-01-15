@@ -1,7 +1,3 @@
-FROM nginx
-RUN echo "Starting nginx dockerfile"
-RUN mkdir -p /var/www/certbot
-# RUN mkdir -p /vol/web/static
+FROM nginx:latest
 
-# COPY ./app/amauta/staticfiles/ /vol/web/static/
-# COPY ./nginx.conf /etc/nginx/nginx.conf
+RUN mkdir -p /var/www/certbot
