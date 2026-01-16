@@ -10,7 +10,7 @@ python manage.py wait_for_db
 python manage.py collectstatic --noinput --clear || echo "Warning: collectstatic failed, continuing anyway..."
 
 # Apply any pending database migrations.
-# python manage.py migrate
+python manage.py migrate
 
 # Start the uWSGI server with 4 worker processes, using the WSGI module.
 # --socket :9000: Binds to port 9000.
