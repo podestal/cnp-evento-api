@@ -2,6 +2,37 @@ from django.shortcuts import render
 from .models import Activity, Participant, Tema
 from .serializers import ActivitySerializer, ParticipantSerializer, TemaSerializer
 from rest_framework import viewsets
+from rest_framework.generics import ListAPIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+
+
+class ParticipantListPagination(PageNumberPagination):
+    """Custom pagination for participant list with max page size of 10."""
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 10
+    
+    def paginate_queryset(self, queryset, request, view=None):
+        """Store the queryset to calculate active/inactive counts."""
+        self.queryset = queryset
+        return super().paginate_queryset(queryset, request, view)
+    
+    def get_paginated_response(self, data):
+        """Add active and inactive participant counts to the response."""
+        # Calculate counts from the filtered queryset
+        total_count = self.queryset.count()
+        active_count = self.queryset.filter(is_active=True).count()
+        inactive_count = self.queryset.filter(is_active=False).count()
+        
+        return Response({
+            'count': self.page.paginator.count,
+            'total_active': active_count,
+            'total_inactive': inactive_count,
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'results': data
+        })
 
 
 class TemaViewSet(viewsets.ModelViewSet):
@@ -15,5 +46,86 @@ class ActivityViewSet(viewsets.ModelViewSet):
 
 
 class ParticipantViewSet(viewsets.ModelViewSet):
-    queryset = Participant.objects.all()
+    """
+    List participants with filtering by name, last_name, dni, celphone, and email.
+    Supports pagination with max page size of 10.
+    
+    Query parameters:
+    - name: Filter by name (partial match, case-insensitive)
+    - last_name: Filter by last name (partial match, case-insensitive)
+    - dni: Filter by DNI (partial match, case-insensitive)
+    - celphone: Filter by cellphone (partial match, case-insensitive)
+    - email: Filter by email (partial match, case-insensitive)
+    - page: Page number for pagination
+    - page_size: Items per page (max 10)
+    """
+    queryset = Participant.objects.all().order_by('-created_at')
     serializer_class = ParticipantSerializer
+    pagination_class = ParticipantListPagination
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Get filter parameters
+        name = self.request.query_params.get('name', None)
+        last_name = self.request.query_params.get('last_name', None)
+        dni = self.request.query_params.get('dni', None)
+        celphone = self.request.query_params.get('celphone', None)
+        email = self.request.query_params.get('email', None)
+        
+        # Apply filters (case-insensitive partial matching)
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        if last_name:
+            queryset = queryset.filter(last_name__icontains=last_name)
+        if dni:
+            queryset = queryset.filter(dni__icontains=dni)
+        if celphone:
+            queryset = queryset.filter(celphone__icontains=celphone)
+        if email:
+            queryset = queryset.filter(email__icontains=email)
+        
+        return queryset
+
+
+class ParticipantListView(ListAPIView):
+    """
+    List participants with filtering by name, last_name, dni, celphone, and email.
+    Supports pagination with max page size of 10.
+    
+    Query parameters:
+    - name: Filter by name (partial match, case-insensitive)
+    - last_name: Filter by last name (partial match, case-insensitive)
+    - dni: Filter by DNI (partial match, case-insensitive)
+    - celphone: Filter by cellphone (partial match, case-insensitive)
+    - email: Filter by email (partial match, case-insensitive)
+    - page: Page number for pagination
+    - page_size: Items per page (max 10)
+    """
+    queryset = Participant.objects.all().order_by('-created_at')
+    serializer_class = ParticipantSerializer
+    pagination_class = ParticipantListPagination
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Get filter parameters
+        name = self.request.query_params.get('name', None)
+        last_name = self.request.query_params.get('last_name', None)
+        dni = self.request.query_params.get('dni', None)
+        celphone = self.request.query_params.get('celphone', None)
+        email = self.request.query_params.get('email', None)
+        
+        # Apply filters (case-insensitive partial matching)
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        if last_name:
+            queryset = queryset.filter(last_name__icontains=last_name)
+        if dni:
+            queryset = queryset.filter(dni__icontains=dni)
+        if celphone:
+            queryset = queryset.filter(celphone__icontains=celphone)
+        if email:
+            queryset = queryset.filter(email__icontains=email)
+        
+        return queryset
