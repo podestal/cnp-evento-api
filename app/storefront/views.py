@@ -5,6 +5,7 @@ from rest_framework import viewsets
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
 class ParticipantListPagination(PageNumberPagination):
@@ -38,11 +39,21 @@ class ParticipantListPagination(PageNumberPagination):
 class TemaViewSet(viewsets.ModelViewSet):
     queryset = Tema.objects.order_by('id')
     serializer_class = TemaSerializer
+    
+    def get_permissions(self):
+        if self.action == 'list':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
 
 class ActivityViewSet(viewsets.ModelViewSet):
     queryset = Activity.objects.all()
     serializer_class = ActivitySerializer
+    
+    def get_permissions(self):
+        if self.action == 'list':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
 
 class ParticipantViewSet(viewsets.ModelViewSet):
@@ -63,48 +74,10 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     serializer_class = ParticipantSerializer
     pagination_class = ParticipantListPagination
     
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Get filter parameters
-        name = self.request.query_params.get('name', None)
-        last_name = self.request.query_params.get('last_name', None)
-        dni = self.request.query_params.get('dni', None)
-        celphone = self.request.query_params.get('celphone', None)
-        email = self.request.query_params.get('email', None)
-        
-        # Apply filters (case-insensitive partial matching)
-        if name:
-            queryset = queryset.filter(name__icontains=name)
-        if last_name:
-            queryset = queryset.filter(last_name__icontains=last_name)
-        if dni:
-            queryset = queryset.filter(dni__icontains=dni)
-        if celphone:
-            queryset = queryset.filter(celphone__icontains=celphone)
-        if email:
-            queryset = queryset.filter(email__icontains=email)
-        
-        return queryset
-
-
-class ParticipantListView(ListAPIView):
-    """
-    List participants with filtering by name, last_name, dni, celphone, and email.
-    Supports pagination with max page size of 10.
-    
-    Query parameters:
-    - name: Filter by name (partial match, case-insensitive)
-    - last_name: Filter by last name (partial match, case-insensitive)
-    - dni: Filter by DNI (partial match, case-insensitive)
-    - celphone: Filter by cellphone (partial match, case-insensitive)
-    - email: Filter by email (partial match, case-insensitive)
-    - page: Page number for pagination
-    - page_size: Items per page (max 10)
-    """
-    queryset = Participant.objects.all().order_by('-created_at')
-    serializer_class = ParticipantSerializer
-    pagination_class = ParticipantListPagination
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAuthenticated()]
     
     def get_queryset(self):
         queryset = super().get_queryset()
