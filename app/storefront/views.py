@@ -136,13 +136,13 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         # Validate required fields
         if not qr:
             return Response(
-                {'error': 'QR code is required'},
+                {'error': 'El QR es requerido'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         if not activity_id:
             return Response(
-                {'error': 'activity_id is required'},
+                {'error': 'El ID de la actividad es requerido'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -154,7 +154,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                     participant = Participant.objects.select_for_update().get(qr_code=qr)
                 except Participant.DoesNotExist:
                     return Response(
-                        {'error': 'Participant not found with the provided QR code'},
+                        {'error': 'No se encontró el participante con el QR proporcionado'},
                         status=status.HTTP_404_NOT_FOUND
                     )
                 
@@ -163,7 +163,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                     activity = Activity.objects.select_for_update().get(id=activity_id, is_active=True)
                 except Activity.DoesNotExist:
                     return Response(
-                        {'error': 'Activity not found or is inactive'},
+                        {'error': 'No se encontró la actividad'},
                         status=status.HTTP_404_NOT_FOUND
                     )
                 
@@ -171,7 +171,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 if participant.activities.filter(id=activity_id).exists():
                     return Response(
                         {
-                            'error': 'Activity is already assigned to this participant',
+                            'error': 'La actividad ya ha sido registrada para este participante',
                             'participant': ParticipantSerializer(participant).data
                         },
                         status=status.HTTP_400_BAD_REQUEST
@@ -186,12 +186,12 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 # Return updated participant data
                 serializer = ParticipantSerializer(participant)
                 return Response({
-                    'message': 'Activity added successfully',
+                    'message': 'Actividad registrada correctamente',
                     'participant': serializer.data
                 }, status=status.HTTP_200_OK)
                 
         except Exception as e:
             return Response(
-                {'error': f'Error updating participant activities: {str(e)}'},
+                {'error': f'Error al registrar la actividad: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
