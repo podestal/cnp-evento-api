@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.db import transaction
 from .models import Activity, Participant, Tema
 from .serializers import ActivitySerializer, ParticipantSerializer, TemaSerializer
 from rest_framework import viewsets
@@ -75,10 +76,10 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     serializer_class = ParticipantSerializer
     pagination_class = ParticipantListPagination
     
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return [AllowAny()]
-        return [IsAuthenticated()]
+    # def get_permissions(self):
+    #     if self.request.method == 'POST':
+    #         return [AllowAny()]
+    #     return [IsAuthenticated()]
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -117,3 +118,80 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def update_activity_by_qr(self, request):
+        """
+        Update participant activities by QR code.
+        
+        Expected POST data:
+        {
+            "qr": "participant_qr_code",
+            "activity_id": 1
+        }
+        """
+        qr = request.data.get('qr', None)
+        activity_id = request.data.get('activity_id', None)
+        
+        # Validate required fields
+        if not qr:
+            return Response(
+                {'error': 'QR code is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not activity_id:
+            return Response(
+                {'error': 'activity_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Wrap all database operations in an atomic transaction
+        try:
+            with transaction.atomic():
+                # Find participant by QR code
+                try:
+                    participant = Participant.objects.select_for_update().get(qr_code=qr)
+                except Participant.DoesNotExist:
+                    return Response(
+                        {'error': 'Participant not found with the provided QR code'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                
+                # Get the activity
+                try:
+                    activity = Activity.objects.select_for_update().get(id=activity_id, is_active=True)
+                except Activity.DoesNotExist:
+                    return Response(
+                        {'error': 'Activity not found or is inactive'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                
+                # Check if activity is already in participant's activities
+                if participant.activities.filter(id=activity_id).exists():
+                    return Response(
+                        {
+                            'error': 'Activity is already assigned to this participant',
+                            'participant': ParticipantSerializer(participant).data
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # Add activity to participant
+                participant.activities.add(activity)
+                
+                # Refresh participant to get updated activities
+                participant.refresh_from_db()
+                
+                # Return updated participant data
+                serializer = ParticipantSerializer(participant)
+                return Response({
+                    'message': 'Activity added successfully',
+                    'participant': serializer.data
+                }, status=status.HTTP_200_OK)
+                
+        except Exception as e:
+            return Response(
+                {'error': f'Error updating participant activities: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
