@@ -33,6 +33,7 @@ class Participant(models.Model):
     receipt = models.ImageField(upload_to='receipts/', blank=True, null=True, help_text='Receipt image stored in R2 bucket')
     is_active = models.BooleanField(default=True)
     tema = models.ForeignKey(Tema, on_delete=models.SET_NULL, blank=True, null=True)
+    qr_code = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

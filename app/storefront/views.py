@@ -6,6 +6,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import action
+from rest_framework import status
 
 
 class ParticipantListPagination(PageNumberPagination):
@@ -34,7 +36,6 @@ class ParticipantListPagination(PageNumberPagination):
             'previous': self.get_previous_link(),
             'results': data
         })
-
 
 class TemaViewSet(viewsets.ModelViewSet):
     queryset = Tema.objects.order_by('id')
@@ -74,10 +75,10 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     serializer_class = ParticipantSerializer
     pagination_class = ParticipantListPagination
     
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return [AllowAny()]
-        return [IsAuthenticated()]
+    # def get_permissions(self):
+    #     if self.request.method == 'POST':
+    #         return [AllowAny()]
+    #     return [IsAuthenticated()]
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -102,3 +103,17 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(email__icontains=email)
         
         return queryset
+
+    @action(detail=False, methods=['get'])
+    def by_dni(self, request):
+        dni = request.query_params.get('dni', None)
+        if dni:
+            try:
+                participant = Participant.objects.get(dni=dni)
+                return Response(ParticipantSerializer(participant).data)
+            except Participant.DoesNotExist:
+                # return empty obj and 200 status
+                return Response({}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
