@@ -120,6 +120,69 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'])
+    def registar_qr_code(self, request):
+        """
+        Register QR code for a participant by DNI.
+        
+        Expected POST data:
+        {
+            "dni": "12345678",
+            "qr": "participant_qr_code"
+        }
+        """
+        dni = request.data.get('dni', None)
+        qr = request.data.get('qr', None)
+        
+        # Validate required fields
+        if not dni:
+            return Response(
+                {'error': 'El DNI es requerido'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not qr:
+            return Response(
+                {'error': 'El QR es requerido'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Wrap all database operations in an atomic transaction
+        try:
+            with transaction.atomic():
+                # First, check if QR code is already registered
+                if Participant.objects.filter(qr_code=qr).exists():
+                    return Response(
+                        {'error': 'El código QR ya está registrado'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # Find participant by DNI
+                try:
+                    participant = Participant.objects.select_for_update().get(dni=dni)
+                except Participant.DoesNotExist:
+                    return Response(
+                        {'error': 'No se encontró el participante con el DNI proporcionado'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                
+                # Update participant's QR code
+                participant.qr_code = qr
+                participant.save()
+                
+                # Return updated participant data
+                serializer = ParticipantSerializer(participant)
+                return Response({
+                    'message': f'QR código {qr} registrado correctamente para el participante {participant.name} {participant.last_name}',
+                    'participant': serializer.data
+                }, status=status.HTTP_200_OK)
+                
+        except Exception as e:
+            return Response(
+                {'error': f'Error al registrar el QR código {qr}: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'])
     def update_activity_by_qr(self, request):
         """
         Update participant activities by QR code.
