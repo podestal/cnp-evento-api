@@ -165,6 +165,13 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_404_NOT_FOUND
                     )
                 
+                # Check if participant is active
+                if not participant.is_active:
+                    return Response(
+                        {'error': 'Participante no está activado'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
                 # Update participant's QR code
                 participant.qr_code = qr
                 participant.save()
