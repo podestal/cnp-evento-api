@@ -113,8 +113,8 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 participant = Participant.objects.get(dni=dni)
                 return Response(ParticipantSerializer(participant).data)
             except Participant.DoesNotExist:
-                # return empty obj and 200 status
-                return Response({}, status=status.HTTP_200_OK)
+                # return 404 status with message
+                return Response({'message': 'No se encontró el participante con el DNI proporcionado'}, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -172,7 +172,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 # Return updated participant data
                 serializer = ParticipantSerializer(participant)
                 return Response({
-                    'message': f'QR código {qr} registrado correctamente para el participante {participant.name} {participant.last_name}',
+                    'message': f'QR código {qr} registrado correctamente para el participante {participant.name} {participant.last_name} con DNI {dni}',
                     'participant': serializer.data
                 }, status=status.HTTP_200_OK)
                 
