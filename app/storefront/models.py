@@ -48,6 +48,7 @@ class Companion(models.Model):
     last_name = models.CharField(max_length=255)
     dni = models.CharField(max_length=8)
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    receipt = models.ImageField(upload_to='receipts/', blank=True, null=True, help_text='Receipt image stored in R2 bucket')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

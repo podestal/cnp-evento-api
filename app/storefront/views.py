@@ -270,11 +270,6 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 class CompanionViewSet(viewsets.ModelViewSet):
     queryset = Companion.objects.order_by('id')
     serializer_class = CompanionSerializer
-    
-    def get_permissions(self):
-        if self.action == 'list':
-            return [AllowAny()]
-        return [IsAuthenticated()]
 
     def get_permissions(self):
         if self.request.method == 'POST':
