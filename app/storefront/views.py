@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.db import transaction
-from .models import Activity, Participant, Tema
-from .serializers import ActivitySerializer, ParticipantSerializer, TemaSerializer
+from .models import Activity, Participant, Tema, Companion
+from .serializers import ActivitySerializer, ParticipantSerializer, TemaSerializer, CompanionSerializer
 from rest_framework import viewsets
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -76,10 +76,10 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     serializer_class = ParticipantSerializer
     pagination_class = ParticipantListPagination
     
-    # def get_permissions(self):
-    #     if self.request.method == 'POST':
-    #         return [AllowAny()]
-    #     return [IsAuthenticated()]
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAuthenticated()]
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -265,3 +265,18 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 {'error': f'Error al registrar la actividad: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class CompanionViewSet(viewsets.ModelViewSet):
+    queryset = Companion.objects.order_by('id')
+    serializer_class = CompanionSerializer
+    
+    def get_permissions(self):
+        if self.action == 'list':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAuthenticated()]

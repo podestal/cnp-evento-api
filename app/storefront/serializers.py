@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Activity, Participant, Tema
+from .models import Activity, Participant, Tema, Companion
 
 
 class TemaSerializer(serializers.ModelSerializer):
@@ -17,4 +17,10 @@ class ActivitySerializer(serializers.ModelSerializer):
 class ParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participant
+        fields = '__all__'
+
+
+class CompanionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Companion
         fields = '__all__'
