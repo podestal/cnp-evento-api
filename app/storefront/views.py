@@ -275,3 +275,15 @@ class CompanionViewSet(viewsets.ModelViewSet):
         if self.request.method == 'POST':
             return [AllowAny()]
         return [IsAuthenticated()]
+
+    @action(detail=False, methods=['get'])
+    def by_participant(self, request):
+        participant_id = request.query_params.get('participant_id', None)
+        #filter companions by participant_id
+        try:
+            companions = Companion.objects.filter(participant_id=participant_id)
+            return Response(CompanionSerializer(companions, many=True).data)
+        except Companion.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
