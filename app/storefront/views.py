@@ -77,10 +77,10 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     serializer_class = ParticipantSerializer
     pagination_class = ParticipantListPagination
     
-    # def get_permissions(self):
-    #     if self.request.method == 'POST':
-    #         return [AllowAny()]
-    #     return [IsAuthenticated()]
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAuthenticated()]
     
     def get_queryset(self):
         queryset = super().get_queryset()
