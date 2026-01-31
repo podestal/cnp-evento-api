@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.db import transaction
+from django.db.models import Q
 from .models import Activity, Participant, Tema, Companion
 from .serializers import ActivitySerializer, ParticipantSerializer, TemaSerializer, CompanionSerializer
 from rest_framework import viewsets
@@ -76,32 +77,43 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     serializer_class = ParticipantSerializer
     pagination_class = ParticipantListPagination
     
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return [AllowAny()]
-        return [IsAuthenticated()]
+    # def get_permissions(self):
+    #     if self.request.method == 'POST':
+    #         return [AllowAny()]
+    #     return [IsAuthenticated()]
     
     def get_queryset(self):
         queryset = super().get_queryset()
         
-        # Get filter parameters
+        # Get search parameter (can be name, last_name, or dni)
+        search = self.request.query_params.get('search', None)
+        
+        # Get other filter parameters
         name = self.request.query_params.get('name', None)
         last_name = self.request.query_params.get('last_name', None)
         dni = self.request.query_params.get('dni', None)
         celphone = self.request.query_params.get('celphone', None)
         email = self.request.query_params.get('email', None)
         
-        # Apply filters (case-insensitive partial matching)
+        # Apply search filter across name, last_name, and dni
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(last_name__icontains=search) |
+                Q(dni__icontains=search)
+            )
+        
+        # Apply other filters
+        if celphone:
+            queryset = queryset.filter(celphone__icontains=celphone)
+        if email:
+            queryset = queryset.filter(email__icontains=email)
         if name:
             queryset = queryset.filter(name__icontains=name)
         if last_name:
             queryset = queryset.filter(last_name__icontains=last_name)
         if dni:
             queryset = queryset.filter(dni__icontains=dni)
-        if celphone:
-            queryset = queryset.filter(celphone__icontains=celphone)
-        if email:
-            queryset = queryset.filter(email__icontains=email)
         
         return queryset
 
