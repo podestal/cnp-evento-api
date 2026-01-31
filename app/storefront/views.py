@@ -87,6 +87,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         
         # Get search parameter (can be name, last_name, or dni)
         search = self.request.query_params.get('search', None)
+        is_active = self.request.query_params.get('is_active', None)
         
         # Get other filter parameters
         name = self.request.query_params.get('name', None)
@@ -114,6 +115,10 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(last_name__icontains=last_name)
         if dni:
             queryset = queryset.filter(dni__icontains=dni)
+        if is_active is not None:
+            # Convert string to boolean
+            is_active_bool = is_active.lower() in ('true', '1', 'yes')
+            queryset = queryset.filter(is_active=is_active_bool)
         
         return queryset
 
